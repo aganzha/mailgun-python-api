@@ -187,7 +187,7 @@ class MailgunAPI(object):
             "priority": priority,
             "description": description,
             "expression": str(expression),
-            "action": str(action),
+            "action": action,
             }
 
         return self._api_request("/routes",
