@@ -90,7 +90,7 @@ class MailgunAPI(object):
         }
         if files:
             payload['files'] = files
-        print "oooooooooooooooooooooooo",payload
+
         response = http_func("https://api.mailgun.net/v2%s?%s" % (path, query_string),**payload)
 
         response_json = json.loads(response.content)
