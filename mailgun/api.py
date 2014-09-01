@@ -67,7 +67,7 @@ class MailgunAPI(object):
             if skip >= results["total_count"]:
                 return
 
-    def _api_request(self, path, data, method=None):
+    def _api_request(self, path, data, method=None, files=None):
         response_json = None
         success = False
 
@@ -81,38 +81,40 @@ class MailgunAPI(object):
         if method.lower() == "get" and data:
             query_string = urllib.urlencode(data)
             data = None
-        
-        try:
-            http_func = getattr(requests, method.lower())
-            response = http_func(
-                "https://api.mailgun.net/v2%s?%s" % (
-                    path, query_string),
-                auth=("api", self.api_key),
-                data=data,
-            )
 
-            response_json = json.loads(response.content)
-            success = response.ok
-            reason = response_json.get('message')
-            self.installPaging(response_json)
+        # try:
+        http_func = getattr(requests, method.lower())
+        payload = {
+            'auth':("api", self.api_key),
+            'data':data,
+        }
+        if files:
+            payload['files'] = files
+        print "oooooooooooooooooooooooo",payload
+        response = http_func("https://api.mailgun.net/v2%s?%s" % (path, query_string),**payload)
 
-        except BaseException as error:
-            reason = error
+        response_json = json.loads(response.content)
+        success = response.ok
+        reason = response_json.get('message')
+        self.installPaging(response_json)
+
+        # except BaseException as error:
+        #     reason = error
 
         if not success:
             raise MailgunException(reason)
 
         return response_json
 
-    
+
 
     def send_email(self, subject,
                    plain_text, html_text, to_email,
                    from_email=None, cc=None, bcc=None,
-                   headers=None):
+                   headers=None, files=None):
 
-        if isinstance(to_email, basestring):
-            to_email = (to_email, )
+        # if isinstance(to_email, basestring):
+        #     to_email = (to_email, )
 
         if not from_email:
             from_email = self.default_from_email
@@ -136,7 +138,7 @@ class MailgunAPI(object):
         if bcc:
             data["bcc"] = bcc
 
-        return self._api_request("/%s/messages" % self.api_list_name, data)
+        return self._api_request("/%s/messages" % self.api_list_name, data, files=files)
 
     def send_bulk_email(self, subject,
                         plain_text, html_text, to_data,
@@ -204,7 +206,7 @@ class MailgunAPI(object):
         return self._api_request("/%s/events" % self.api_list_name, data,method="GET")
 
 
-    def installPaging(self,js):        
+    def installPaging(self,js):
         if js and 'paging' in js:
             self._next = js['paging'].get('next',None)
             self._previous = js['paging'].get('previous',None)
@@ -217,13 +219,12 @@ class MailgunAPI(object):
         js = json.loads(response.content)
         self.installPaging(js)
         return js
-            
+
 
     def next(self):
         if self._next:
-            return self._get(self._next)        
+            return self._get(self._next)
 
     def previous(self):
         if self._previous:
             return self._get(self._previous)
-        
