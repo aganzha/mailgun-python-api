@@ -92,7 +92,6 @@ class MailgunAPI(object):
             payload['files'] = files
 
         response = http_func("https://api.mailgun.net/v2%s?%s" % (path, query_string),**payload)
-
         response_json = json.loads(response.content)
         success = response.ok
         reason = response_json.get('message')
@@ -143,7 +142,7 @@ class MailgunAPI(object):
     def send_bulk_email(self, subject,
                         plain_text, html_text, to_data,
                         from_email=None, cc=None, bcc=None,
-                        headers=None):
+                        headers=None, files=None):
         """
         @to_data: a dictionary of data dictionaries
                   keyed by email.
@@ -175,7 +174,7 @@ class MailgunAPI(object):
         if bcc:
             data["bcc"] = bcc
 
-        return self._api_request("/%s/messages" % self.api_list_name, data)
+        return self._api_request("/%s/messages" % self.api_list_name, data, files=files)
 
     def get_routes(self):
         for route in self._api_list("/routes", method="GET"):
