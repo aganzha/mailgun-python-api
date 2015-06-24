@@ -91,7 +91,7 @@ class MailgunAPI(object):
         if files:
             payload['files'] = files
 
-        response = http_func("https://50.56.21.178/v2%s?%s" % (path, query_string),**payload)#api.mailgun.net/
+        response = http_func("https://api.mailgun.net/v2%s?%s" % (path, query_string),**payload)#
         response_json = json.loads(response.content)
         success = response.ok
         reason = response_json.get('message')
